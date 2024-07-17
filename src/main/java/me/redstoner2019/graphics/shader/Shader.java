@@ -1,4 +1,4 @@
-package me.redstoner2019.graphics.general;
+package me.redstoner2019.graphics.shader;
 
 import java.io.BufferedReader;
 import java.io.IOException;

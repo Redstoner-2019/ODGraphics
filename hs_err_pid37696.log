@@ -35,9 +35,9 @@ Java frames: (J=compiled Java code, j=interpreted, Vv=VM code)
 j  org.lwjgl.opengl.GL11C.nglGenTextures(IJ)V+0
 j  org.lwjgl.opengl.GL11C.glGenTextures()I+20
 j  org.lwjgl.opengl.GL11.glGenTextures()I+0
-j  me.redstoner2019.graphics.general.Texture.loadTexture(Ljava/nio/ByteBuffer;)Lme/redstoner2019/graphics/general/Texture;+69
-j  me.redstoner2019.graphics.general.Texture.loadTextureFromResource(Ljava/lang/String;)Lme/redstoner2019/graphics/general/Texture;+4
-j  me.redstoner2019.graphics.general.TextureProvider.loadTexture(Ljava/lang/String;)V+1
+j  me.redstoner2019.graphics.texture.Texture.loadTexture(Ljava/nio/ByteBuffer;)Lme/redstoner2019/graphics/general/Texture;+69
+j  me.redstoner2019.graphics.texture.Texture.loadTextureFromResource(Ljava/lang/String;)Lme/redstoner2019/graphics/general/Texture;+4
+j  me.redstoner2019.graphics.texture.TextureProvider.loadTexture(Ljava/lang/String;)V+1
 j  TestMain.<init>(FFFF)V+101
 j  TestMain.main([Ljava/lang/String;)V+10
 v  ~StubRoutines::call_stub 0x00000217f5a2100d

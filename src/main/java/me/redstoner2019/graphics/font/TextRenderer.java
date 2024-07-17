@@ -1,7 +1,6 @@
 package me.redstoner2019.graphics.font;
 
-import me.redstoner2019.graphics.general.Renderer;
-import me.redstoner2019.graphics.general.Texture;
+import me.redstoner2019.graphics.render.Renderer;
 import me.redstoner2019.util.Util;
 import org.lwjgl.stb.STBTTAlignedQuad;
 import org.lwjgl.stb.STBTTBakedChar;

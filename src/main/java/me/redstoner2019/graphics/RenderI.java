@@ -1,10 +1,10 @@
 package me.redstoner2019.graphics;
 
-import me.redstoner2019.audio.SoundManager;
+import me.redstoner2019.audio.SoundProvider;
 import me.redstoner2019.graphics.font.TextRenderer;
-import me.redstoner2019.graphics.general.Renderer;
-import me.redstoner2019.graphics.general.TextureProvider;
+import me.redstoner2019.graphics.render.Renderer;
+import me.redstoner2019.graphics.texture.TextureProvider;
 
 public interface RenderI {
-    void render(Renderer renderer, TextRenderer textRenderer, TextureProvider textureProvider, SoundManager soundManager);
+    void render(Renderer renderer, TextRenderer textRenderer, TextureProvider textureProvider, SoundProvider soundProvider);
 }

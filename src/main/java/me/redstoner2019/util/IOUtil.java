@@ -1,4 +1,4 @@
-package me.redstoner2019.graphics.general;
+package me.redstoner2019.util;
 
 import org.lwjgl.BufferUtils;
 

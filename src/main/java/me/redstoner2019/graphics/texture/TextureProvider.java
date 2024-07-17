@@ -1,4 +1,4 @@
-package me.redstoner2019.graphics.general;
+package me.redstoner2019.graphics.texture;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,8 +32,10 @@ public class TextureProvider {
         textures.put(texturePath,texture);
     }
 
-    public void loadTexture(String texturePath){
+    public String loadTexture(String texturePath){
         Texture t = Texture.loadTextureFromResource(texturePath);
-        textures.put(texturePath,t);
+        String loadName = texturePath.replaceAll("/",".").replaceAll(String.valueOf("\\\\".substring(0,2)),".");
+        textures.put(loadName,t);
+        return loadName;
     }
 }

@@ -1,6 +1,6 @@
 package me.redstoner2019.graphics.font;
 
-import me.redstoner2019.graphics.general.Texture;
+import me.redstoner2019.graphics.texture.Texture;
 import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;

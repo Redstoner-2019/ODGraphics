@@ -1,12 +1,16 @@
 package me.redstoner2019.gui.window;
 
-import me.redstoner2019.audio.SoundManager;
+import me.redstoner2019.audio.SoundProvider;
 import me.redstoner2019.graphics.RenderI;
 import me.redstoner2019.graphics.font.TextRenderer;
-import me.redstoner2019.graphics.general.IOUtil;
-import me.redstoner2019.graphics.general.Renderer;
-import me.redstoner2019.graphics.general.TextureProvider;
+import me.redstoner2019.util.IOUtil;
+import me.redstoner2019.graphics.render.Renderer;
+import me.redstoner2019.graphics.texture.TextureProvider;
 import me.redstoner2019.gui.Component;
+import me.redstoner2019.gui.events.KeyPressedEvent;
+import me.redstoner2019.gui.events.MouseClickedEvent;
+import me.redstoner2019.gui.events.MouseMovedEvent;
+import me.redstoner2019.gui.events.ResizeEvent;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
@@ -40,6 +44,10 @@ public class Window extends Component {
     private int componentsDrawn = 0;
     private String title = "";
     private List<RenderI> renderers = new ArrayList<>();
+    private List<MouseClickedEvent> mouseClickedEvents = new ArrayList<>();
+    private List<MouseMovedEvent> mouseMovedEvents = new ArrayList<>();
+    private List<KeyPressedEvent> keyPressedEvents = new ArrayList<>();
+    private List<ResizeEvent> resizeEvents = new ArrayList<>();
 
     public Window(float x, float y, float width, float height) {
         super(x, y, width, height);
@@ -47,6 +55,19 @@ public class Window extends Component {
 
     public void addRenderer(RenderI renderer){
         renderers.add(renderer);
+    }
+
+    public void addMouseClickEvent(MouseClickedEvent mouseClickedEvent){
+        mouseClickedEvents.add(mouseClickedEvent);
+    }
+    public void addMouseMoveEvent(MouseMovedEvent mouseMovedEvent){
+        mouseMovedEvents.add(mouseMovedEvent);
+    }
+    public void addKeyPressedEvent(KeyPressedEvent keyPressedEvent){
+        keyPressedEvents.add(keyPressedEvent);
+    }
+    public void addResizedEventEvent(ResizeEvent resizeEvent){
+        resizeEvents.add(resizeEvent);
     }
 
     public String getTitle() {
@@ -152,7 +173,6 @@ public class Window extends Component {
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glLoadIdentity();
         aspectRatio = getWidth() / getHeight();
-        System.out.println(getWidth() + " " + getHeight());
         GL11.glOrtho(-aspectRatio, aspectRatio, -1f, 1.0f, -1f, 1.0f);
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
         GL11.glLoadIdentity();
@@ -171,7 +191,7 @@ public class Window extends Component {
     }
 
     public void onResize(float newW, float newH){
-
+        for(ResizeEvent e : resizeEvents) e.onNewSize(newW, newH);
     }
 
     public boolean shouldClose(){
@@ -203,7 +223,7 @@ public class Window extends Component {
             glfwSetWindowTitle(window,title);
 
             for(RenderI renderI : renderers){
-                renderI.render(renderer,textRenderer,TextureProvider.getInstance(),SoundManager.getInstance());
+                renderI.render(renderer,textRenderer,TextureProvider.getInstance(), SoundProvider.getInstance());
             }
 
             GLFW.glfwSwapBuffers(window);
@@ -217,8 +237,6 @@ public class Window extends Component {
             }
             lastFrameTime = glfwGetTime() - start;
         }
-
-        System.out.println("Exiting");
 
         glfwDestroyWindow(window);
         System.exit(0);
@@ -255,6 +273,40 @@ public class Window extends Component {
                 renderer.setWidth(w);
                 GL11.glViewport(0, 0, w, h);
                 updateProjectionMatrix();
+            }
+        });
+
+        GLFW.glfwSetMouseButtonCallback(window, new GLFWMouseButtonCallback() {
+            @Override
+            public void invoke(long l, int i, int i1, int i2) {
+                double[] mouseX = new double[1];
+                double[] mouseY = new double[1];
+                GLFW.glfwGetCursorPos(window, mouseX, mouseY);
+                MouseClickedEvent.Button button = null;
+                if(i == 0) button = MouseClickedEvent.Button.LEFT;
+                if(i == 1) button = MouseClickedEvent.Button.RIGHT;
+                if(i == 2) button = MouseClickedEvent.Button.MIDDLE;
+                for(MouseClickedEvent e : mouseClickedEvents){
+                    e.onMouseClickedEvent((float) mouseX[0], (float) mouseY[0], (float) (((mouseX[0] / getWidth()) * 2) - 1), (float) (((mouseY[0] / getHeight()) * 2) - 1), button ,i1 == GLFW_PRESS ? MouseClickedEvent.Type.PRESS : MouseClickedEvent.Type.RELEASE);
+                }
+            }
+        });
+
+        GLFW.glfwSetCursorPosCallback(window, new GLFWCursorPosCallback() {
+            @Override
+            public void invoke(long window, double xpos, double ypos) {
+                for(MouseMovedEvent e : mouseMovedEvents){
+                    e.onMouseMovedEvent((float) xpos, (float) ypos, (float) (((xpos / getWidth()) * 2) - 1), (float) (((ypos / getHeight()) * 2) - 1));
+                }
+            }
+        });
+
+        GLFW.glfwSetKeyCallback(window, new GLFWKeyCallback() {
+            @Override
+            public void invoke(long l, int i, int i1, int i2, int i3) {
+                for(KeyPressedEvent e : keyPressedEvents){
+                    e.keyPressedEvent(i,i2,i3);
+                }
             }
         });
 

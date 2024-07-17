@@ -1,24 +1,20 @@
-import me.redstoner2019.audio.SoundManager;
+import me.redstoner2019.audio.SoundProvider;
 import me.redstoner2019.graphics.RenderI;
+import me.redstoner2019.graphics.animation.Animation;
+import me.redstoner2019.graphics.animation.AnimationFrame;
 import me.redstoner2019.graphics.font.TextRenderer;
-import me.redstoner2019.graphics.general.Renderer;
-import me.redstoner2019.graphics.general.Shader;
-import me.redstoner2019.graphics.general.ShaderProgram;
-import me.redstoner2019.graphics.general.TextureProvider;
+import me.redstoner2019.graphics.render.*;
+import me.redstoner2019.graphics.shader.PostProcessingShader;
+import me.redstoner2019.graphics.texture.TextureProvider;
+import me.redstoner2019.gui.events.KeyPressedEvent;
 import me.redstoner2019.gui.window.Window;
 import me.redstoner2019.util.Resources;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL20;
 
 import java.awt.*;
 import java.util.Random;
 
-import static org.lwjgl.opengl.GL20.glGetUniformLocation;
-import static org.lwjgl.opengl.GL20.glUniform1f;
-
 public class TestMain extends Window {
-
-    private ShaderProgram noisePostProcess;
 
     public TestMain(float x, float y, float width, float height) {
         super(x, y, width, height);
@@ -28,37 +24,62 @@ public class TestMain extends Window {
         setTitle("Test");
 
         TextureProvider textureProvider = TextureProvider.getInstance();
-        SoundManager soundManager = SoundManager.getInstance();
+        SoundProvider soundProvider = SoundProvider.getInstance();
 
-        for(String s : Resources.listResources("audio")){
-            soundManager.loadSound(s);
-        }
+        /*for(String s : Resources.listResources("audio")){
+            soundProvider.loadSound(s);
+        }*/
 
         for(String s : Resources.listResources("textures")){
             textureProvider.loadTexture(s);
         }
 
-        Shader vertexShader = Shader.loadShader(GL20.GL_VERTEX_SHADER, "shader/default.vert");
-        Shader fragmentShader = Shader.loadShader(GL20.GL_FRAGMENT_SHADER, "shader/noise.frag");
+        PostProcessingShader vignettePostProcess = new PostProcessingShader("shader/post/vignette.frag");
+        PostProcessingShader colorPostProcess = new PostProcessingShader("shader/post/colourize.frag");
+        PostProcessingShader noisePostProcess = new PostProcessingShader("shader/post/noise.frag");
 
-        noisePostProcess = new ShaderProgram();
-        noisePostProcess.attachShader(vertexShader);
-        noisePostProcess.attachShader(fragmentShader);
-        noisePostProcess.link();
+        AnimationFrame[] animationFrames = new AnimationFrame[22];
+        for (int i = 0; i < 11; i++) {
+            animationFrames[i] = new AnimationFrame(textureProvider.get("textures.bonnie.jump." + i + ".png"), Color.WHITE, -1,-1,2,2);
+        }
+        for (int i = 11; i < 21; i++) {
+            float a = (i-11)/10f;
+            System.out.println(a);
+            animationFrames[i] = new AnimationFrame(textureProvider.get("textures.bonnie.jump.10.png"), new Color(1,1,1,(1-a)), -1,-1,2,2);
+        }
+        animationFrames[21] = new AnimationFrame(textureProvider.get("textures.bonnie.jump.10.png"), new Color(1,1,1,0), -1,-1,2,2);
+        Animation bonnieJump = new Animation(32,animationFrames);
+
+        addKeyPressedEvent(new KeyPressedEvent() {
+            @Override
+            public void keyPressedEvent(int key, int action, int mods) {
+                if(key == GLFW.GLFW_KEY_SPACE && action == GLFW.GLFW_RELEASE){
+                    bonnieJump.play();
+                }
+                if(key == GLFW.GLFW_KEY_S && action == GLFW.GLFW_RELEASE){
+                    bonnieJump.stop();
+                }
+            }
+        });
+
 
         addRenderer(new RenderI() {
             @Override
-            public void render(Renderer renderer, TextRenderer textRenderer, TextureProvider textureProvider, SoundManager soundManager) {
-                int seedLocation = glGetUniformLocation(noisePostProcess.id, "seed");
-                glUniform1f(seedLocation, new Random().nextFloat());
+            public void render(Renderer renderer, TextRenderer textRenderer, TextureProvider textureProvider, SoundProvider soundProvider) {
+                colorPostProcess.setUniform4f("color",1,0,1,1);
+                noisePostProcess.setUniform1f("seed",new Random().nextFloat());
+
+                renderer.setPostProcessingShaders(vignettePostProcess);
+
+                renderer.renderTexture(-1,-1,2,2,textureProvider.get("textures.optatada.jpg"),Color.WHITE);
 
                 renderer.setPostProcessingShaders(noisePostProcess);
 
-                renderer.renderTexture(-1,-1,2,2,textureProvider.get("textures\\test.jpg"),new Color(1,1,1,(float) (1 - (GLFW.glfwGetTime() / 20f))));
+                if(bonnieJump.isRunning()) bonnieJump.render(renderer);
 
                 renderer.setPostProcessingShaders();
 
-                textRenderer.renderText(getFps() + "",0,0,40, Color.RED);
+                textRenderer.renderText(getFps() + " FPS",0,0,40, Color.RED);
                 textRenderer.renderText(GLFW.glfwGetTime() + "",0,80,40, Color.RED);
             }
         });

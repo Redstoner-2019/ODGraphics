@@ -1,9 +1,12 @@
-package me.redstoner2019.graphics.general;
+package me.redstoner2019.graphics.render;
 
+import me.redstoner2019.graphics.shader.PostProcessingShader;
+import me.redstoner2019.graphics.shader.Shader;
+import me.redstoner2019.graphics.shader.ShaderProgram;
+import me.redstoner2019.graphics.texture.Texture;
 import org.lwjgl.opengl.*;
 
 import java.awt.*;
-import java.util.Random;
 
 import static org.lwjgl.opengl.GL33.*;
 
@@ -15,7 +18,7 @@ public class Renderer {
 
     public int vao;
     private final ShaderProgram renderShader;
-    private ShaderProgram[] postProcessingShaders;
+    private PostProcessingShader[] postProcessingShaders;
 
 
     private Renderer(){
@@ -61,7 +64,7 @@ public class Renderer {
         return postProcessingShaders;
     }
 
-    public void setPostProcessingShaders(ShaderProgram...postProcessingShaders) {
+    public void setPostProcessingShaders(PostProcessingShader...postProcessingShaders) {
         this.postProcessingShaders = postProcessingShaders;
     }
 
@@ -95,6 +98,9 @@ public class Renderer {
         int offsetScaleLocation = GL20.glGetUniformLocation(renderShader.id, "offsetScale");
         GL20.glUniform2f(offsetScaleLocation, w, h);
 
+        int colorLocation = GL20.glGetUniformLocation(renderShader.id, "color");
+        GL20.glUniform4f(colorLocation, color.getRed()/255f,color.getGreen()/255f, color.getBlue()/255f,color.getAlpha()/255f);
+
         glBindVertexArray(vao);
         glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
@@ -103,7 +109,7 @@ public class Renderer {
             for(ShaderProgram post : postProcessingShaders){
                 glUseProgram(post.id);
 
-                textureUniformLocation = GL20.glGetUniformLocation(post.id, "textureSampler");
+                /*textureUniformLocation = GL20.glGetUniformLocation(post.id, "textureSampler");
                 GL20.glUniform1i(textureUniformLocation, 0);
 
                 texOffsetLocation = GL20.glGetUniformLocation(post.id, "texOffset");
@@ -116,27 +122,13 @@ public class Renderer {
                 GL20.glUniform2f(offsetLocation, x + (w/2), y + (h/2));
 
                 offsetScaleLocation = GL20.glGetUniformLocation(post.id, "offsetScale");
-                GL20.glUniform2f(offsetScaleLocation, w, h);
-
-                System.out.println(post.id);
+                GL20.glUniform2f(offsetScaleLocation, w, h);*/
 
                 glBindVertexArray(vao);
                 glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);
                 glBindVertexArray(0);
             }
         }
-
-        /*glEnable(GL_BLEND);
-
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        GL13.glActiveTexture(GL13.GL_TEXTURE0);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
-
-        GL30.glBindVertexArray(vao);
-        GL11.glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);
-        GL30.glBindVertexArray(0);*/
-
         GL20.glUseProgram(0);
     }
 

@@ -1,24 +1,21 @@
 package me.redstoner2019.audio;
 
-import org.lwjgl.openal.AL;
-import org.lwjgl.openal.ALC;
-import org.lwjgl.openal.ALCCapabilities;
-import org.lwjgl.openal.ALCapabilities;
+import org.lwjgl.openal.*;
 
 import java.util.HashMap;
 import java.util.Set;
 
 import static org.lwjgl.openal.ALC10.*;
 
-public class SoundManager {
+public class SoundProvider {
 
     private long audioContext;
     private long audioDevice;
-    private static SoundManager INSTANCE;
+    private static SoundProvider INSTANCE;
     private float volume = .5f;
     private HashMap<String, Sound> sounds = new HashMap<>();
 
-    private SoundManager(){
+    private SoundProvider(){
         String defaultDeviceName = alcGetString(0, ALC_DEFAULT_DEVICE_SPECIFIER);
         audioDevice = alcOpenDevice(defaultDeviceName);
 
@@ -60,9 +57,9 @@ public class SoundManager {
         alcCloseDevice(audioDevice);
     }
 
-    public static SoundManager getInstance() {
+    public static SoundProvider getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = new SoundManager();
+            INSTANCE = new SoundProvider();
         }
         return INSTANCE;
     }
