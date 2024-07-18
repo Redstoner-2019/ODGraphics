@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+//keytool -import -alias github -keystore "C:\Program Files\Java\jdk-17\lib\security" -file "C:\Users\l.paepke\github.crt"
+
 public class Resources {
     private static Path getJarPath() throws URISyntaxException {
         URL jarUrl = Resources.class.getProtectionDomain().getCodeSource().getLocation();

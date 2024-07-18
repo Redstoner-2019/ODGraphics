@@ -223,7 +223,7 @@ public class Window extends Component {
             glfwSetWindowTitle(window,title);
 
             for(RenderI renderI : renderers){
-                renderI.render(renderer,textRenderer,TextureProvider.getInstance(), SoundProvider.getInstance());
+                renderI.render(renderer, textRenderer);
             }
 
             GLFW.glfwSwapBuffers(window);
@@ -287,7 +287,7 @@ public class Window extends Component {
                 if(i == 1) button = MouseClickedEvent.Button.RIGHT;
                 if(i == 2) button = MouseClickedEvent.Button.MIDDLE;
                 for(MouseClickedEvent e : mouseClickedEvents){
-                    e.onMouseClickedEvent((float) mouseX[0], (float) mouseY[0], (float) (((mouseX[0] / getWidth()) * 2) - 1), (float) (((mouseY[0] / getHeight()) * 2) - 1), button ,i1 == GLFW_PRESS ? MouseClickedEvent.Type.PRESS : MouseClickedEvent.Type.RELEASE);
+                    e.onMouseClickedEvent((float) mouseX[0], (float) mouseY[0], (float) (((mouseX[0] / getWidth()) * 2) - 1), (float) -(((mouseY[0] / getHeight()) * 2) - 1), button ,i1 == GLFW_PRESS ? MouseClickedEvent.Type.PRESS : MouseClickedEvent.Type.RELEASE);
                 }
             }
         });
@@ -296,7 +296,7 @@ public class Window extends Component {
             @Override
             public void invoke(long window, double xpos, double ypos) {
                 for(MouseMovedEvent e : mouseMovedEvents){
-                    e.onMouseMovedEvent((float) xpos, (float) ypos, (float) (((xpos / getWidth()) * 2) - 1), (float) (((ypos / getHeight()) * 2) - 1));
+                    e.onMouseMovedEvent((float) xpos, (float) ypos, (float) (((xpos / getWidth()) * 2) - 1), (float) -(((ypos / getHeight()) * 2) - 1));
                 }
             }
         });

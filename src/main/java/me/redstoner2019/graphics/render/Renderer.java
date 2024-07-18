@@ -109,7 +109,7 @@ public class Renderer {
             for(ShaderProgram post : postProcessingShaders){
                 glUseProgram(post.id);
 
-                /*textureUniformLocation = GL20.glGetUniformLocation(post.id, "textureSampler");
+                textureUniformLocation = GL20.glGetUniformLocation(post.id, "textureSampler");
                 GL20.glUniform1i(textureUniformLocation, 0);
 
                 texOffsetLocation = GL20.glGetUniformLocation(post.id, "texOffset");
@@ -122,7 +122,7 @@ public class Renderer {
                 GL20.glUniform2f(offsetLocation, x + (w/2), y + (h/2));
 
                 offsetScaleLocation = GL20.glGetUniformLocation(post.id, "offsetScale");
-                GL20.glUniform2f(offsetScaleLocation, w, h);*/
+                GL20.glUniform2f(offsetScaleLocation, w, h);
 
                 glBindVertexArray(vao);
                 glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);

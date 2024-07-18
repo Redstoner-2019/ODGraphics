@@ -65,15 +65,18 @@ public class TestMain extends Window {
 
         addRenderer(new RenderI() {
             @Override
-            public void render(Renderer renderer, TextRenderer textRenderer, TextureProvider textureProvider, SoundProvider soundProvider) {
+            public void render(Renderer renderer, TextRenderer textRenderer) {
                 colorPostProcess.setUniform4f("color",1,0,1,1);
-                noisePostProcess.setUniform1f("seed",new Random().nextFloat());
+                noisePostProcess.setUniform1f("seed",0.5f);
+                noisePostProcess.setUniform1f("strength",0.5f);
+                noisePostProcess.setUniform1i("pixelsX",5);
+                noisePostProcess.setUniform1i("pixelsY",5);
 
-                renderer.setPostProcessingShaders(vignettePostProcess);
+                renderer.setPostProcessingShaders(noisePostProcess,vignettePostProcess);
 
                 renderer.renderTexture(-1,-1,2,2,textureProvider.get("textures.optatada.jpg"),Color.WHITE);
 
-                renderer.setPostProcessingShaders(noisePostProcess);
+                renderer.setPostProcessingShaders();
 
                 if(bonnieJump.isRunning()) bonnieJump.render(renderer);
 

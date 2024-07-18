@@ -6,5 +6,5 @@ import me.redstoner2019.graphics.render.Renderer;
 import me.redstoner2019.graphics.texture.TextureProvider;
 
 public interface RenderI {
-    void render(Renderer renderer, TextRenderer textRenderer, TextureProvider textureProvider, SoundProvider soundProvider);
+    void render(Renderer renderer, TextRenderer textRenderer);
 }
