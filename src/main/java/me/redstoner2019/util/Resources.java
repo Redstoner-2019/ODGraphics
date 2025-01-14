@@ -1,5 +1,6 @@
 package me.redstoner2019.util;
 
+import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -34,7 +35,9 @@ public class Resources {
                 }
             } else {
                 for (Path p : Files.list(Path.of("src/main/resources/" + resourceFolder)).toList()) {
-                    files.add(p.toString().substring("src/main/resources/".length()));
+                    if(new File(p.toString()).isDirectory()){
+                        files.addAll(listResources(p.toString().substring("src/main/resources/".length())));
+                    } else files.add(p.toString().substring("src/main/resources/".length()));
                 }
             }
             return files;

@@ -1,11 +1,9 @@
 package me.redstoner2019.gui.window;
 
-import me.redstoner2019.audio.SoundProvider;
 import me.redstoner2019.graphics.RenderI;
 import me.redstoner2019.graphics.font.TextRenderer;
 import me.redstoner2019.util.IOUtil;
 import me.redstoner2019.graphics.render.Renderer;
-import me.redstoner2019.graphics.texture.TextureProvider;
 import me.redstoner2019.gui.Component;
 import me.redstoner2019.gui.events.KeyPressedEvent;
 import me.redstoner2019.gui.events.MouseClickedEvent;
@@ -20,6 +18,7 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -28,7 +27,7 @@ import static org.lwjgl.stb.STBImage.*;
 import static org.lwjgl.stb.STBImage.stbi_image_free;
 import static org.lwjgl.system.MemoryUtil.memAllocInt;
 
-public class Window extends Component {
+public abstract class Window extends Component {
 
     private long window;
     private boolean vsync;
@@ -48,6 +47,7 @@ public class Window extends Component {
     private List<MouseMovedEvent> mouseMovedEvents = new ArrayList<>();
     private List<KeyPressedEvent> keyPressedEvents = new ArrayList<>();
     private List<ResizeEvent> resizeEvents = new ArrayList<>();
+    private HashMap<Integer, Boolean> keysPressed = new HashMap<>();
 
     public Window(float x, float y, float width, float height) {
         super(x, y, width, height);
@@ -56,6 +56,8 @@ public class Window extends Component {
     public void addRenderer(RenderI renderer){
         renderers.add(renderer);
     }
+
+    public abstract void update(float deltaTime);
 
     public void addMouseClickEvent(MouseClickedEvent mouseClickedEvent){
         mouseClickedEvents.add(mouseClickedEvent);
@@ -210,6 +212,7 @@ public class Window extends Component {
         GLFW.glfwPollEvents();
 
         while (!shouldClose()) {
+
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glMatrixMode(GL_PROJECTION);
@@ -219,6 +222,8 @@ public class Window extends Component {
 
             double start = glfwGetTime();
             deltaTime = (float) (lastFrameTime / (1.0/60.0));
+
+            update(deltaTime);
 
             glfwSetWindowTitle(window,title);
 
@@ -304,6 +309,14 @@ public class Window extends Component {
         GLFW.glfwSetKeyCallback(window, new GLFWKeyCallback() {
             @Override
             public void invoke(long l, int i, int i1, int i2, int i3) {
+                if(i2 == GLFW.GLFW_RELEASE){
+                    keysPressed.put(i,false);
+                }
+
+                if(i2 == GLFW_PRESS){
+                    keysPressed.put(i,true);
+                }
+
                 for(KeyPressedEvent e : keyPressedEvents){
                     e.keyPressedEvent(i,i2,i3);
                 }
@@ -321,5 +334,9 @@ public class Window extends Component {
 
         renderer = Renderer.getInstance();
         textRenderer = TextRenderer.getInstance();
+    }
+
+    public boolean isKeyDown(int key){
+        return keysPressed.getOrDefault(key,false);
     }
 }

@@ -1,9 +1,11 @@
 package me.redstoner2019.graphics.render;
 
+import me.redstoner2019.graphics.mesh.Mesh;
 import me.redstoner2019.graphics.shader.PostProcessingShader;
 import me.redstoner2019.graphics.shader.Shader;
 import me.redstoner2019.graphics.shader.ShaderProgram;
 import me.redstoner2019.graphics.texture.Texture;
+import me.redstoner2019.graphics.texture.TextureProvider;
 import org.lwjgl.opengl.*;
 
 import java.awt.*;
@@ -19,6 +21,7 @@ public class Renderer {
     public int vao;
     private final ShaderProgram renderShader;
     private PostProcessingShader[] postProcessingShaders;
+    private PostProcessor postProcessor;
 
 
     private Renderer(){
@@ -31,6 +34,8 @@ public class Renderer {
         renderShader.attachShader(vertexShader);
         renderShader.attachShader(fragmentShader);
         renderShader.link();
+
+        postProcessor = new PostProcessor();
     }
 
     public static Renderer getInstance() {
@@ -60,12 +65,21 @@ public class Renderer {
         this.height = height;
     }
 
-    public ShaderProgram[] getPostProcessingShaders() {
+    public PostProcessingShader[] getPostProcessingShaders() {
         return postProcessingShaders;
     }
 
     public void setPostProcessingShaders(PostProcessingShader...postProcessingShaders) {
         this.postProcessingShaders = postProcessingShaders;
+    }
+
+    public void applyPostProcess(){
+        if(postProcessingShaders != null){
+            for(ShaderProgram post : postProcessingShaders){
+                postProcessor.renderPostProcess(post.id, 0);
+                System.out.println(post.id);
+            }
+        }
     }
 
     public void renderTexture(float x, float y, float w, float h, float sectionX, float sectionY, float sectionW, float sectionH, Texture texture, Color color){
@@ -106,8 +120,15 @@ public class Renderer {
         glBindVertexArray(0);
 
         if(postProcessingShaders != null){
-            for(ShaderProgram post : postProcessingShaders){
+            for(PostProcessingShader post : postProcessingShaders){
                 glUseProgram(post.id);
+
+                if(post.isOverrideRenderBounds()){
+                    x = -1;
+                    y = -1;
+                    w = 2;
+                    h = 2;
+                }
 
                 textureUniformLocation = GL20.glGetUniformLocation(post.id, "textureSampler");
                 GL20.glUniform1i(textureUniformLocation, 0);
@@ -127,6 +148,8 @@ public class Renderer {
                 glBindVertexArray(vao);
                 glDrawElements(GL11.GL_TRIANGLES, 6, GL11.GL_UNSIGNED_INT, 0);
                 glBindVertexArray(0);
+
+                GL20.glUseProgram(0);
             }
         }
         GL20.glUseProgram(0);
@@ -235,5 +258,60 @@ public class Renderer {
         GL30.glBindVertexArray(0);
 
         return vao;
+    }
+
+    public void renderMesh(Texture texture, Mesh mesh){
+        float[] vertices = mesh.getVertices();
+
+        int[] indices = mesh.getIndices();
+
+        int vaoId = glGenVertexArrays();
+        glBindVertexArray(vaoId);
+
+        int vboId = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, vboId);
+        glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * Float.BYTES, 0);
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 2, GL_FLOAT, false, 5 * Float.BYTES, 3 * Float.BYTES);
+        glEnableVertexAttribArray(1);
+
+        int eboId = glGenBuffers();
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture.getId());
+        glEnable(GL_BLEND);
+
+        glUseProgram(renderShader.id);
+
+        int textureUniformLocation = GL20.glGetUniformLocation(renderShader.id, "textureSampler");
+        GL20.glUniform1i(textureUniformLocation, 0);
+
+        int texOffsetLocation = GL20.glGetUniformLocation(renderShader.id, "texOffset");
+        GL20.glUniform2f(texOffsetLocation, 0, 0);
+
+        int texScaleLocation = GL20.glGetUniformLocation(renderShader.id, "texScale");
+        GL20.glUniform2f(texScaleLocation, 1, 1);
+
+        int offsetLocation = GL20.glGetUniformLocation(renderShader.id, "offset");
+        GL20.glUniform2f(offsetLocation, 0, 0);
+
+        int offsetScaleLocation = GL20.glGetUniformLocation(renderShader.id, "offsetScale");
+        GL20.glUniform2f(offsetScaleLocation, 1, 1);
+
+        int colorLocation = GL20.glGetUniformLocation(renderShader.id, "color");
+        GL20.glUniform4f(colorLocation, 1,1,1,1);
+
+        glBindVertexArray(vaoId);
+
+        glDrawElements(GL_TRIANGLES, indices.length, GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(0);
+
+        glUseProgram(0);
     }
 }

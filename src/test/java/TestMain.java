@@ -26,11 +26,12 @@ public class TestMain extends Window {
         TextureProvider textureProvider = TextureProvider.getInstance();
         SoundProvider soundProvider = SoundProvider.getInstance();
 
-        /*for(String s : Resources.listResources("audio")){
+        for(String s : Resources.listResources("audio")){
             soundProvider.loadSound(s);
-        }*/
+        }
 
         for(String s : Resources.listResources("textures")){
+            System.out.println("Loading " + s);
             textureProvider.loadTexture(s);
         }
 
@@ -38,26 +39,27 @@ public class TestMain extends Window {
         PostProcessingShader colorPostProcess = new PostProcessingShader("shader/post/colourize.frag");
         PostProcessingShader noisePostProcess = new PostProcessingShader("shader/post/noise.frag");
 
-        AnimationFrame[] animationFrames = new AnimationFrame[22];
-        for (int i = 0; i < 11; i++) {
-            animationFrames[i] = new AnimationFrame(textureProvider.get("textures.bonnie.jump." + i + ".png"), Color.WHITE, -1,-1,2,2);
-        }
-        for (int i = 11; i < 21; i++) {
-            float a = (i-11)/10f;
-            System.out.println(a);
-            animationFrames[i] = new AnimationFrame(textureProvider.get("textures.bonnie.jump.10.png"), new Color(1,1,1,(1-a)), -1,-1,2,2);
-        }
-        animationFrames[21] = new AnimationFrame(textureProvider.get("textures.bonnie.jump.10.png"), new Color(1,1,1,0), -1,-1,2,2);
-        Animation bonnieJump = new Animation(32,animationFrames);
+        Animation.init();
+
+        /*AnimationFrame[] animationFrames = new AnimationFrame[22];
+        for (int i = 0; i < 22; i++) {
+            float f = (float) i / animationFrames.length;
+            animationFrames[i] = new AnimationFrame(textureProvider.get("textures.test.jpg"), Color.WHITE, -f,-1,f*2,2);
+        }*/
+
+        Animation animation0 = new Animation(2000,new AnimationFrame(textureProvider.get("textures.test.jpg"), Color.WHITE, 0,-1,0,2),new AnimationFrame(textureProvider.get("textures.test2.jpg"), Color.WHITE, -1,-1,2,2));
+        animation0.setReverse(false);
+        animation0.setRepeating(true);
+        //bonnieJump = new Animation(32,animationFrames);
 
         addKeyPressedEvent(new KeyPressedEvent() {
             @Override
             public void keyPressedEvent(int key, int action, int mods) {
                 if(key == GLFW.GLFW_KEY_SPACE && action == GLFW.GLFW_RELEASE){
-                    bonnieJump.play();
+                    animation0.play();
                 }
                 if(key == GLFW.GLFW_KEY_S && action == GLFW.GLFW_RELEASE){
-                    bonnieJump.stop();
+                    animation0.stop();
                 }
             }
         });
@@ -69,16 +71,18 @@ public class TestMain extends Window {
                 colorPostProcess.setUniform4f("color",1,0,1,1);
                 noisePostProcess.setUniform1f("seed",0.5f);
                 noisePostProcess.setUniform1f("strength",0.5f);
-                noisePostProcess.setUniform1i("pixelsX",5);
-                noisePostProcess.setUniform1i("pixelsY",5);
+                noisePostProcess.setUniform1i("pixelsX",2000);
+                noisePostProcess.setUniform1i("pixelsY",2000);
 
-                renderer.setPostProcessingShaders(noisePostProcess,vignettePostProcess);
+                for (int i = 0; i < 1; i++) {
+                    renderer.renderTexture(-1,-1,1,1,textureProvider.get("textures.test2.jpg"),Color.WHITE);
+                }
 
-                renderer.renderTexture(-1,-1,2,2,textureProvider.get("textures.optatada.jpg"),Color.WHITE);
+                renderer.setPostProcessingShaders(vignettePostProcess);
 
                 renderer.setPostProcessingShaders();
 
-                if(bonnieJump.isRunning()) bonnieJump.render(renderer);
+                if(animation0.isRunning()) animation0.render(renderer);
 
                 renderer.setPostProcessingShaders();
 
@@ -88,6 +92,11 @@ public class TestMain extends Window {
         });
 
         loop();
+    }
+
+    @Override
+    public void update(float deltaTime) {
+
     }
 
     public static void main(String[] args) {

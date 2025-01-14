@@ -9,5 +9,5 @@ uniform vec4 color = vec4(1,1,1,1);
 void main() {
     vec4 texColor = texture(screenTexture, fragTexCoord).rgba;
 
-    fragColor = texColor * color;
+    fragColor = color;
 }
