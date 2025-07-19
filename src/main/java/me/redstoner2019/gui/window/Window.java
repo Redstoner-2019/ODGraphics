@@ -2,6 +2,7 @@ package me.redstoner2019.gui.window;
 
 import me.redstoner2019.graphics.RenderI;
 import me.redstoner2019.graphics.font.TextRenderer;
+import me.redstoner2019.threed.render.Renderer3D;
 import me.redstoner2019.util.IOUtil;
 import me.redstoner2019.graphics.render.Renderer;
 import me.redstoner2019.gui.Component;
@@ -10,9 +11,7 @@ import me.redstoner2019.gui.events.MouseClickedEvent;
 import me.redstoner2019.gui.events.MouseMovedEvent;
 import me.redstoner2019.gui.events.ResizeEvent;
 import org.lwjgl.glfw.*;
-import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
@@ -23,6 +22,7 @@ import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL20.GL_SHADING_LANGUAGE_VERSION;
 import static org.lwjgl.stb.STBImage.*;
 import static org.lwjgl.stb.STBImage.stbi_image_free;
 import static org.lwjgl.system.MemoryUtil.memAllocInt;
@@ -32,6 +32,7 @@ public abstract class Window extends Component {
     private long window;
     private boolean vsync;
     private Renderer renderer;
+    private Renderer3D renderer3D;
     private TextRenderer textRenderer;
     private boolean fullscreen;
     private float aspectRatio;
@@ -48,6 +49,7 @@ public abstract class Window extends Component {
     private List<KeyPressedEvent> keyPressedEvents = new ArrayList<>();
     private List<ResizeEvent> resizeEvents = new ArrayList<>();
     private HashMap<Integer, Boolean> keysPressed = new HashMap<>();
+    private boolean debugMode = false;
 
     public Window(float x, float y, float width, float height) {
         super(x, y, width, height);
@@ -70,6 +72,14 @@ public abstract class Window extends Component {
     }
     public void addResizedEventEvent(ResizeEvent resizeEvent){
         resizeEvents.add(resizeEvent);
+    }
+
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
     }
 
     public String getTitle() {
@@ -228,7 +238,7 @@ public abstract class Window extends Component {
             glfwSetWindowTitle(window,title);
 
             for(RenderI renderI : renderers){
-                renderI.render(renderer, textRenderer);
+                renderI.render(renderer, renderer3D, textRenderer);
             }
 
             GLFW.glfwSwapBuffers(window);
@@ -276,6 +286,8 @@ public abstract class Window extends Component {
                 setHeight(h);
                 renderer.setHeight(h);
                 renderer.setWidth(w);
+                renderer3D.setHeight(h);
+                renderer3D.setWidth(w);
                 GL11.glViewport(0, 0, w, h);
                 updateProjectionMatrix();
             }
@@ -326,13 +338,27 @@ public abstract class Window extends Component {
         GLFW.glfwShowWindow(window);
         GL.createCapabilities();
 
+        if(isDebugMode()) {
+            System.out.println("OpenGL version: " + glGetString(GL_VERSION));
+            System.out.println("GLSL version: " + glGetString(GL_SHADING_LANGUAGE_VERSION));
+            System.out.println("Renderer: " + glGetString(GL_RENDERER));
+
+            GL43.glDebugMessageCallback((source, type, id, severity, length, message, userParam) -> {
+                System.err.println("GL DEBUG: " + GLDebugMessageCallback.getMessage(length, message));
+            }, 0);
+        }
+
         GL11.glEnable(GL13.GL_MULTISAMPLE);
         glEnable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
 
         updateProjectionMatrix();
 
         renderer = Renderer.getInstance();
+        renderer3D = Renderer3D.getInstance();
         textRenderer = TextRenderer.getInstance();
     }
 

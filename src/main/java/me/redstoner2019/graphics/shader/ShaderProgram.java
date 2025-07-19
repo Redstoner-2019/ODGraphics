@@ -1,5 +1,12 @@
 package me.redstoner2019.graphics.shader;
 
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryStack;
+
+import java.nio.FloatBuffer;
+
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL20.*;
@@ -96,12 +103,29 @@ public class ShaderProgram {
         glUseProgram(0);
     }
 
+    public void setUniform3f(CharSequence name, Vector3f vector3f){
+        glUseProgram(id);
+        int location = glGetUniformLocation(id, name);
+        glUniform3f(location, vector3f.x, vector3f.y, vector3f.z);
+        glUseProgram(0);
+    }
+
     public void setUniform4i(CharSequence name, int f1, int f2, int f3, int f4){
         glUseProgram(id);
         int location = glGetUniformLocation(id, name);
         glUniform4i(location, f1, f2, f3, f4);
         glUseProgram(0);
     }
+
+    public void setUniform4fv(CharSequence name, Matrix4f matrix) {
+        int location = glGetUniformLocation(id, name);
+        try (MemoryStack stack = MemoryStack.stackPush()) {   // fast, no GC
+            FloatBuffer fb = stack.mallocFloat(16);
+            matrix.get(fb);            // writes 16 floats, advances pos to 16
+            glUniformMatrix4fv(location, false, fb); // fb’s position is 0 ✓
+        }
+    }
+
 
     public void use() {
         glUseProgram(id);
@@ -116,5 +140,13 @@ public class ShaderProgram {
 
     public void delete() {
         glDeleteProgram(id);
+    }
+
+    public void bind(){
+        glUseProgram(id);
+    }
+
+    public void unbind(){
+        glUseProgram(0);
     }
 }

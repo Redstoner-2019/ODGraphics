@@ -10,6 +10,7 @@ import me.redstoner2019.graphics.render.Renderer;
 import me.redstoner2019.graphics.texture.TextureProvider;
 import me.redstoner2019.gui.events.KeyPressedEvent;
 import me.redstoner2019.gui.window.Window;
+import me.redstoner2019.threed.render.Renderer3D;
 import me.redstoner2019.util.Resources;
 import org.lwjgl.glfw.GLFW;
 
@@ -56,7 +57,7 @@ public class Game extends Window {
 
         addRenderer(new RenderI() {
             @Override
-            public void render(Renderer renderer, TextRenderer textRenderer) {
+            public void render(Renderer renderer, Renderer3D renderer3D, TextRenderer textRenderer) {
                 int renderDistance = 5;
                 int chunkCount = 0;
 

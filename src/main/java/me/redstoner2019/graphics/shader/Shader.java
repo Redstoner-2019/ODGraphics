@@ -46,6 +46,13 @@ public class Shader {
         shader.source(source);
         shader.compile();
 
+        int success = glGetShaderi(shader.id, GL_COMPILE_STATUS);
+        if (success == GL_FALSE) {
+            String log = glGetShaderInfoLog(shader.id);
+            throw new RuntimeException("Shader compilation failed:\n" + log);
+        }
+
+
         return shader;
     }
 
