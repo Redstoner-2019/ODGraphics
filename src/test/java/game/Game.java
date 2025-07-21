@@ -125,10 +125,10 @@ public class Game extends Window {
                     }
                 }*/
 
-                textRenderer.renderText(getFps() + " FPS",0,0,20, Color.WHITE);
-                textRenderer.renderText(String.format("Position: %.2f / %.2f", x, y),0,20,20, Color.WHITE);
-                textRenderer.renderText(GLFW.glfwGetTime() + "",0,40,20, Color.WHITE);
-                textRenderer.renderText("Chunks: " + chunkCount,0,60,20, Color.WHITE);
+                //textRenderer.renderText(getFps() + " FPS",0,0,20, Color.WHITE);
+                //textRenderer.renderText(String.format("Position: %.2f / %.2f", x, y),0,20,20, Color.WHITE);
+                //textRenderer.renderText(GLFW.glfwGetTime() + "",0,40,20, Color.WHITE);
+                //textRenderer.renderText("Chunks: " + chunkCount,0,60,20, Color.WHITE);
                 //textRenderer.renderText(m.getVertices().length + " vertices",0,60,20, Color.WHITE);
                 //textRenderer.renderText((m.getIndices().length / 3) + " triangles",0,80,20, Color.WHITE);
             }

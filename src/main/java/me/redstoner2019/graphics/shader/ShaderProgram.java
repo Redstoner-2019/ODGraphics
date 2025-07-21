@@ -3,6 +3,7 @@ package me.redstoner2019.graphics.shader;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.FloatBuffer;
@@ -15,6 +16,17 @@ import static org.lwjgl.opengl.GL30.glBindFragDataLocation;
 public class ShaderProgram {
 
     public final int id;
+
+    public ShaderProgram(String vertexPath, String fragmentPath) {
+        id = glCreateProgram();
+
+        Shader vertexShader = Shader.loadShader(GL20.GL_VERTEX_SHADER, vertexPath);
+        Shader fragmentShader = Shader.loadShader(GL20.GL_FRAGMENT_SHADER, fragmentPath);
+
+        attachShader(vertexShader);
+        attachShader(fragmentShader);
+        link();
+    }
 
     public ShaderProgram() {
         id = glCreateProgram();
@@ -55,66 +67,48 @@ public class ShaderProgram {
     }
 
     public void setUniform1f(CharSequence name, float f){
-        glUseProgram(id);
         int location = glGetUniformLocation(id, name);
         glUniform1f(location, f);
-        glUseProgram(0);
     }
 
     public void setUniform1i(CharSequence name, int f){
-        glUseProgram(id);
         int location = glGetUniformLocation(id, name);
         glUniform1i(location, f);
-        glUseProgram(0);
     }
 
     public void setUniform2f(CharSequence name, float f1, float f2){
-        glUseProgram(id);
         int location = glGetUniformLocation(id, name);
         glUniform2f(location, f1, f2);
-        glUseProgram(0);
     }
 
     public void setUniform2i(CharSequence name, int f1, int f2){
-        glUseProgram(id);
         int location = glGetUniformLocation(id, name);
         glUniform2i(location, f1, f2);
-        glUseProgram(0);
     }
 
     public void setUniform3f(CharSequence name, float f1, float f2, float f3){
-        glUseProgram(id);
         int location = glGetUniformLocation(id, name);
         glUniform3f(location, f1, f2, f3);
-        glUseProgram(0);
     }
 
     public void setUniform3i(CharSequence name, int f1, int f2, int f3){
-        glUseProgram(id);
         int location = glGetUniformLocation(id, name);
         glUniform3i(location, f1, f2, f3);
-        glUseProgram(0);
     }
 
     public void setUniform4f(CharSequence name, float f1, float f2, float f3, float f4){
-        glUseProgram(id);
         int location = glGetUniformLocation(id, name);
         glUniform4f(location, f1, f2, f3, f4);
-        glUseProgram(0);
     }
 
     public void setUniform3f(CharSequence name, Vector3f vector3f){
-        glUseProgram(id);
         int location = glGetUniformLocation(id, name);
         glUniform3f(location, vector3f.x, vector3f.y, vector3f.z);
-        glUseProgram(0);
     }
 
     public void setUniform4i(CharSequence name, int f1, int f2, int f3, int f4){
-        glUseProgram(id);
         int location = glGetUniformLocation(id, name);
         glUniform4i(location, f1, f2, f3, f4);
-        glUseProgram(0);
     }
 
     public void setUniform4fv(CharSequence name, Matrix4f matrix) {

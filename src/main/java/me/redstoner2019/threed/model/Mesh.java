@@ -2,33 +2,45 @@ package me.redstoner2019.threed.model;
 
 import static org.lwjgl.opengl.ARBVertexArrayObject.glBindVertexArray;
 import static org.lwjgl.opengl.ARBVertexArrayObject.glGenVertexArrays;
-import static org.lwjgl.opengl.GL15C.*;
-import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
-import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL20.*;
 
 public class Mesh {
-    private int vao, vbo, nbo, ibo;
+    private int vao, vbo, nbo, tbo, ibo;
     private int vertexCount;
 
     public Mesh(float[] positions, float[] normals, int[] indices) {
+        this(positions, normals, null, indices);
+    }
+
+    public Mesh(float[] positions, float[] normals, float[] texCoords, int[] indices) {
         vertexCount = indices.length;
 
         vao = glGenVertexArrays();
         glBindVertexArray(vao);
 
-        // Positions
+        // Positions (location = 0)
         vbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, positions, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
         glEnableVertexAttribArray(0);
 
-        // Normals
+        // Normals (location = 1)
         nbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, nbo);
         glBufferData(GL_ARRAY_BUFFER, normals, GL_STATIC_DRAW);
         glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
         glEnableVertexAttribArray(1);
+
+        // Texture coordinates (location = 2, optional)
+        if (texCoords != null) {
+            tbo = glGenBuffers();
+            glBindBuffer(GL_ARRAY_BUFFER, tbo);
+            glBufferData(GL_ARRAY_BUFFER, texCoords, GL_STATIC_DRAW);
+            glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0);
+            glEnableVertexAttribArray(2);
+        }
 
         // Indices
         ibo = glGenBuffers();
@@ -38,46 +50,11 @@ public class Mesh {
         glBindVertexArray(0);
     }
 
-    public static Mesh createCube() {
-        float[] positions = {
-                -0.5f, -0.5f, -0.5f,   // 0
-                0.5f, -0.5f, -0.5f,   // 1
-                0.5f,  0.5f, -0.5f,   // 2
-                -0.5f,  0.5f, -0.5f,   // 3
-                -0.5f, -0.5f,  0.5f,   // 4
-                0.5f, -0.5f,  0.5f,   // 5
-                0.5f,  0.5f,  0.5f,   // 6
-                -0.5f,  0.5f,  0.5f    // 7
-        };
-
-        float[] normals = {
-                // dummy flat normals for now (later improve)
-                0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1,
-                0, 0,  1, 0, 0,  1, 0, 0,  1, 0, 0,  1,
-        };
-
-        int[] indices = {
-                0, 1, 2, 2, 3, 0, // back
-                4, 5, 6, 6, 7, 4, // front
-                0, 4, 7, 7, 3, 0, // left
-                1, 5, 6, 6, 2, 1, // right
-                3, 2, 6, 6, 7, 3, // top
-                0, 1, 5, 5, 4, 0  // bottom
-        };
-
-        System.out.println("Positions: " + positions.length);
-        System.out.println("Normals: " + normals.length);
-        System.out.println("Indices: " + indices.length);
-
-
-        return new Mesh(positions, normals, indices);
-    }
-
-
     public void render() {
         glBindVertexArray(vao);
-        //System.out.println("Rendering mesh with " + vertexCount + " vertices.");
         glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
     }
+
+    // Optional: getters if needed later (vao, buffers, etc.)
 }

@@ -10,6 +10,7 @@ import me.redstoner2019.gui.events.KeyPressedEvent;
 import me.redstoner2019.gui.events.MouseClickedEvent;
 import me.redstoner2019.gui.events.MouseMovedEvent;
 import me.redstoner2019.gui.events.ResizeEvent;
+import org.joml.Matrix4f;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.ARBFramebufferSRGB.GL_FRAMEBUFFER_SRGB;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.GL_SHADING_LANGUAGE_VERSION;
 import static org.lwjgl.stb.STBImage.*;
@@ -49,6 +51,7 @@ public abstract class Window extends Component {
     private List<KeyPressedEvent> keyPressedEvents = new ArrayList<>();
     private List<ResizeEvent> resizeEvents = new ArrayList<>();
     private HashMap<Integer, Boolean> keysPressed = new HashMap<>();
+    private boolean culling = true;
     private boolean debugMode = false;
 
     public Window(float x, float y, float width, float height) {
@@ -182,13 +185,14 @@ public abstract class Window extends Component {
     }
 
     private void updateProjectionMatrix() {
-        GL11.glMatrixMode(GL11.GL_PROJECTION);
-        GL11.glLoadIdentity();
-        aspectRatio = getWidth() / getHeight();
-        GL11.glOrtho(-aspectRatio, aspectRatio, -1f, 1.0f, -1f, 1.0f);
-        GL11.glMatrixMode(GL11.GL_MODELVIEW);
-        GL11.glLoadIdentity();
+        float aspectRatio = getWidth() / (float) getHeight();
+        Matrix4f projection = new Matrix4f().perspective((float) Math.toRadians(70.0f), aspectRatio, 0.1f, 1000.0f);
+
+        renderer3D.getRenderShader().bind();
+        renderer3D.getRenderShader().setUniform4fv("projection", projection);
+        renderer3D.getRenderShader().unbind();
     }
+
 
     public void toggleFullscreen() {
         fullscreen = !fullscreen;
@@ -213,29 +217,24 @@ public abstract class Window extends Component {
     public void loop(){
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0, getWidth(), getHeight(), 0, -1, 1);
-        glMatrixMode(GL_MODELVIEW);
-
         GLFW.glfwSwapBuffers(window);
         GLFW.glfwPollEvents();
 
         while (!shouldClose()) {
 
+            glViewport(0, 0, (int) getWidth(), (int) getHeight());
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glOrtho(0, getWidth(), getHeight(), 0, -1, 1);
-            glMatrixMode(GL_MODELVIEW);
 
             double start = glfwGetTime();
             deltaTime = (float) (lastFrameTime / (1.0/60.0));
 
             update(deltaTime);
+            updateProjectionMatrix();
 
             glfwSetWindowTitle(window,title);
+
+            renderer3D.renderSkybox();
 
             for(RenderI renderI : renderers){
                 renderI.render(renderer, renderer3D, textRenderer);
@@ -352,14 +351,23 @@ public abstract class Window extends Component {
         glEnable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
+        if(culling) {
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
+        } else glDisable(GL_CULL_FACE);
+        glDisable(GL_FRAMEBUFFER_SRGB);
 
-        updateProjectionMatrix();
 
         renderer = Renderer.getInstance();
         renderer3D = Renderer3D.getInstance();
         textRenderer = TextRenderer.getInstance();
+
+        renderer.setHeight((int) getHeight());
+        renderer.setWidth((int) getWidth());
+        renderer3D.setHeight((int) getHeight());
+        renderer3D.setWidth((int) getWidth());
+
+        renderer3D.initShadowMapping();
     }
 
     public boolean isKeyDown(int key){
