@@ -8,12 +8,36 @@ import static org.lwjgl.opengl.GL20.*;
 public class Mesh {
     private int vao, vbo, nbo, tbo, ibo;
     private int vertexCount;
+    
+    // Store the original data for potential modifications
+    private float[] positions;
+    private float[] normals;
+    private float[] texCoords;
+    private int[] indices;
 
     public Mesh(float[] positions, float[] normals, int[] indices) {
         this(positions, normals, null, indices);
     }
 
     public Mesh(float[] positions, float[] normals, float[] texCoords, int[] indices) {
+        // Store copies of the data
+        this.positions = positions.clone();
+        this.normals = normals.clone();
+        this.indices = indices.clone();
+        
+        // If no texture coordinates provided, create default ones (0,0 for each vertex)
+        if (texCoords == null) {
+            int vertexCount = positions.length / 3;
+            this.texCoords = new float[vertexCount * 2];
+            // All texture coordinates default to (0,0)
+            for (int i = 0; i < this.texCoords.length; i++) {
+                this.texCoords[i] = 0.0f;
+            }
+            System.out.println("Generated default texture coordinates for " + vertexCount + " vertices");
+        } else {
+            this.texCoords = texCoords.clone();
+        }
+        
         vertexCount = indices.length;
 
         vao = glGenVertexArrays();
@@ -33,14 +57,12 @@ public class Mesh {
         glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
         glEnableVertexAttribArray(1);
 
-        // Texture coordinates (location = 2, optional)
-        if (texCoords != null) {
-            tbo = glGenBuffers();
-            glBindBuffer(GL_ARRAY_BUFFER, tbo);
-            glBufferData(GL_ARRAY_BUFFER, texCoords, GL_STATIC_DRAW);
-            glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0);
-            glEnableVertexAttribArray(2);
-        }
+        // Texture coordinates (location = 2) - ALWAYS create this buffer
+        tbo = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, tbo);
+        glBufferData(GL_ARRAY_BUFFER, this.texCoords, GL_STATIC_DRAW);
+        glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0);
+        glEnableVertexAttribArray(2);
 
         // Indices
         ibo = glGenBuffers();
@@ -56,5 +78,20 @@ public class Mesh {
         glBindVertexArray(0);
     }
 
-    // Optional: getters if needed later (vao, buffers, etc.)
+    // Getters for mesh data (needed for normalization)
+    public float[] getPositions() {
+        return positions != null ? positions.clone() : null;
+    }
+
+    public float[] getNormals() {
+        return normals != null ? normals.clone() : null;
+    }
+
+    public float[] getTexCoords() {
+        return texCoords != null ? texCoords.clone() : null;
+    }
+
+    public int[] getIndices() {
+        return indices != null ? indices.clone() : null;
+    }
 }

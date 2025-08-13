@@ -146,6 +146,10 @@ public class Texture {
     }
 
     public static Texture loadTexture(ByteBuffer imageBuffer) {
+        if (imageBuffer == null || imageBuffer.remaining() == 0) {
+            throw new IllegalArgumentException("Buffer is null or empty");
+        }
+
 
         int textureID;
 

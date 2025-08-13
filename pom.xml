@@ -117,12 +117,46 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- Core ImGui binding -->
+        <dependency>
+            <groupId>io.github.spair</groupId>
+            <artifactId>imgui-java-binding</artifactId>
+            <version>1.86.11</version>
+        </dependency>
+
+        <!-- Platform binding: for LWJGL3 -->
+        <dependency>
+            <groupId>io.github.spair</groupId>
+            <artifactId>imgui-java-lwjgl3</artifactId>
+            <version>1.86.11</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.github.spair/imgui-java-natives-linux -->
+        <dependency>
+            <groupId>io.github.spair</groupId>
+            <artifactId>imgui-java-natives-linux</artifactId>
+            <version>1.86.11</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.github.spair/imgui-java-natives-windows-ft -->
+        <dependency>
+            <groupId>io.github.spair</groupId>
+            <artifactId>imgui-java-natives-windows-ft</artifactId>
+            <version>1.86.11</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.github.spair/imgui-java-natives-macos -->
+        <dependency>
+            <groupId>io.github.spair</groupId>
+            <artifactId>imgui-java-natives-macos</artifactId>
+            <version>1.86.11</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <dependency>
             <groupId>de.javagl</groupId>
             <artifactId>jgltf-model</artifactId>
             <version>2.0.4</version>
         </dependency>
-
 
 
 

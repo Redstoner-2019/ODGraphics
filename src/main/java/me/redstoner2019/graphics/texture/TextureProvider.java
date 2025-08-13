@@ -34,6 +34,7 @@ public class TextureProvider {
 
     public String loadTexture(String texturePath){
         Texture t = Texture.loadTextureFromResource(texturePath);
+        System.out.println(t == null);
         String loadName = texturePath.replaceAll("/",".").replaceAll(String.valueOf("\\\\".substring(0,2)),".");
         textures.put(loadName,t);
         return loadName;

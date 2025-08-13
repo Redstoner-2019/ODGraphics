@@ -1,57 +1,43 @@
 import game.FastNoiseLite;
+import imgui.ImGui;
+import imgui.ImGuiIO;
+import loader.GLBLoaderTestNew;
+import loader.GLTFLoaderTest;
 import me.redstoner2019.audio.SoundProvider;
 import me.redstoner2019.graphics.RenderI;
 import me.redstoner2019.graphics.animation.Animation;
-import me.redstoner2019.graphics.animation.AnimationFrame;
 import me.redstoner2019.graphics.font.TextRenderer;
 import me.redstoner2019.graphics.render.*;
-import me.redstoner2019.graphics.shader.PostProcessingShader;
 import me.redstoner2019.graphics.shader.Shader;
 import me.redstoner2019.graphics.shader.ShaderProgram;
+import me.redstoner2019.graphics.texture.Texture;
 import me.redstoner2019.graphics.texture.TextureProvider;
+import me.redstoner2019.gui.events.ImGuiRender;
 import me.redstoner2019.gui.events.KeyPressedEvent;
-import me.redstoner2019.gui.events.MouseMovedEvent;
+import me.redstoner2019.gui.window.FrameLimiter;
 import me.redstoner2019.gui.window.Window;
-import me.redstoner2019.threed.loader.GLBLoader;
-import me.redstoner2019.threed.loader.GLTFLoader;
 import me.redstoner2019.threed.loader.OBJLoader;
 import me.redstoner2019.threed.model.Mesh;
 import me.redstoner2019.threed.model.Model;
-import me.redstoner2019.threed.model.Shapes;
 import me.redstoner2019.threed.render.Camera;
 import me.redstoner2019.threed.render.Renderer3D;
 import me.redstoner2019.util.Resources;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.ARBVertexArrayObject.glBindVertexArray;
 import static org.lwjgl.opengl.ARBVertexArrayObject.glGenVertexArrays;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11C.*;
-import static org.lwjgl.opengl.GL11C.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11C.GL_CULL_FACE;
-import static org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11C.GL_FLOAT;
-import static org.lwjgl.opengl.GL11C.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL15C.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15C.GL_STATIC_DRAW;
-import static org.lwjgl.opengl.GL20.*;
 
 public class TestMain extends Window {
 
     private Model teapot;
     private Model suzanne;
+    private Model bonnie;
 
     public TestMain(float x, float y, float width, float height) throws Exception {
         super(x, y, width, height);
@@ -72,6 +58,16 @@ public class TestMain extends Window {
             System.out.println("Loading " + s);
             textureProvider.loadTexture(s);
         }
+
+        addImGuiRender(new ImGuiRender() {
+            @Override
+            public void render() {
+                ImGuiIO io = ImGui.getIO();
+                ImGui.begin("Hello, ImGui!");
+                ImGui.text("This is ImGui in LWJGL!");
+                ImGui.text("Backend flags: " + io.getBackendFlags());
+            }
+        });
 
         //PostProcessingShader vignettePostProcess = new PostProcessingShader("shader/post/vignette.frag");
         //PostProcessingShader colorPostProcess = new PostProcessingShader("shader/post/colourize.frag");
@@ -95,13 +91,20 @@ public class TestMain extends Window {
         //Model freddy = OBJLoader.load("src/main/resources/models/freddy/freddy.obj");
         //Model fnaf1map = OBJLoader.load("src/main/resources/models/map/fnaf_1_map.obj");
 
+        bonnie = GLBLoaderTestNew.loadComplete("src/main/resources/models/models_new/bonnie.glb");
+        //GLTFLoaderTest.debugGLBSafe("src/main/resources/models/models_new/bonnie.glb");
+        //GLBLoaderTestNew.debugGLBSimple("src/main/resources/models/models_new/bonnie.glb");
+
+        bonnie.normalize(1);
+        //bonnie.rotate(0,90);
+
 
 
         //Model freddy = OBJLoader.loadWithMaterials("src/main/resources/models/freddy/freddy.obj", "src/main/resources/models/freddy/freddy.mtl", "src/main/resources/models/freddy/");
-        Model bonnie = OBJLoader.loadWithMaterials("src/main/resources/models/fnaf/Bonnie/Bonnie.obj", "src/main/resources/models/fnaf/Bonnie/Bonnie.mtl", "src/main/resources/models/fnaf/Bonnie/");
+        //Model bonnieObj = OBJLoader.loadWithMaterials("src/main/resources/models/fnaf/Bonnie/Bonnie.obj", "src/main/resources/models/fnaf/Bonnie/Bonnie.mtl", "src/main/resources/models/fnaf/Bonnie/");
         //Model chica = OBJLoader.loadWithMaterials("src/main/resources/models/chica/chica.obj", "src/main/resources/models/chica/chica.mtl", "src/main/resources/models/chica/");
         //Model foxy = OBJLoader.loadWithMaterials("src/main/resources/models/foxy/foxy.obj", "src/main/resources/models/foxy/foxy.mtl", "src/main/resources/models/foxy/");
-        //Model fnaf1map = OBJLoader.loadWithMaterials("src/main/resources/models/map/fnaf_1_map.obj", "src/main/resources/models/map/fnaf_1_map.mtl", "src/main/resources/models/map/");
+        Model fnaf1map = OBJLoader.loadWithMaterials("src/main/resources/models/map/fnaf_1_map.obj", "src/main/resources/models/map/fnaf_1_map.mtl", "src/main/resources/models/map/");
 
         //fnaf1map.setPosition(new Vector3f(0,0,0));
 
@@ -118,7 +121,7 @@ public class TestMain extends Window {
         //freddy.setScale(freddy.getScale().mul(2.25f));
 
         //freddy.setPosition(new Vector3f(0,0,0));
-        bonnie.setPosition(new Vector3f(-1,0,0));
+        //bonnie.setPosition(new Vector3f(-1,0,0));
         //chica.setPosition(new Vector3f(1,0,0));
         //foxy.setPosition(new Vector3f(0,0,0));
 
@@ -136,6 +139,9 @@ public class TestMain extends Window {
                 if (key == GLFW_KEY_F11) toggleFullscreen();
             }
         });
+
+        getLimiter().setMode(FrameLimiter.Mode.LIMITED);
+        getLimiter().setTargetFps(1000);
 
         GLFW.glfwSetInputMode(getWindow(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
 
@@ -184,9 +190,11 @@ public class TestMain extends Window {
         addRenderer(new RenderI() {
             @Override
             public void render(Renderer renderer, Renderer3D renderer3D, TextRenderer textRenderer) {
-                renderer3D.renderModels(List.of(bonnie));
+                renderer3D.renderModels(List.of(bonnie, fnaf1map));
 
                 Camera camera = Camera.getInstance();
+
+                //debugTexture();
 
                 //renderer.renderTexture(-1,-1,1,1,textureProvider.get("textures.test.jpg"));
 
@@ -200,6 +208,23 @@ public class TestMain extends Window {
 
         loop();
     }
+
+    private void debugTexture() {
+        try {
+            // Load a simple texture file to test
+            Texture testTexture = Texture.loadTextureFromResource("textures/test.jpg"); // Use one of your working textures
+            if (testTexture != null) {
+                System.out.println("Test texture loaded successfully with ID: " + testTexture.getId());
+
+                // Try rendering a simple quad with this texture using your 2D renderer
+                Renderer renderer = Renderer.getInstance();
+                renderer.renderTexture(0, 0, 1, 1, testTexture);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     public void update(float deltaTime) {
@@ -220,7 +245,7 @@ public class TestMain extends Window {
         if (isKeyDown(GLFW_KEY_SPACE)) camera.position.add(new Vector3f(0,1,0).mul(speed));
         if (isKeyDown(GLFW_KEY_ESCAPE)) System.exit(0);
 
-        //teapot.rotate(deltaTime * 10,0);
+        bonnie.rotate(deltaTime * 100,deltaTime * 100);
     }
 
     public static void main(String[] args) throws Exception {

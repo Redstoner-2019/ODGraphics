@@ -1,22 +1,28 @@
 package me.redstoner2019.gui.window;
 
+import imgui.ImGui;
+import imgui.gl3.ImGuiImplGl3;
+import imgui.glfw.ImGuiImplGlfw;
 import me.redstoner2019.graphics.RenderI;
 import me.redstoner2019.graphics.font.TextRenderer;
+import me.redstoner2019.gui.events.*;
 import me.redstoner2019.threed.render.Renderer3D;
 import me.redstoner2019.util.IOUtil;
 import me.redstoner2019.graphics.render.Renderer;
 import me.redstoner2019.gui.Component;
-import me.redstoner2019.gui.events.KeyPressedEvent;
-import me.redstoner2019.gui.events.MouseClickedEvent;
-import me.redstoner2019.gui.events.MouseMovedEvent;
-import me.redstoner2019.gui.events.ResizeEvent;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.MemoryUtil;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,9 +56,14 @@ public abstract class Window extends Component {
     private List<MouseMovedEvent> mouseMovedEvents = new ArrayList<>();
     private List<KeyPressedEvent> keyPressedEvents = new ArrayList<>();
     private List<ResizeEvent> resizeEvents = new ArrayList<>();
+    private List<ImGuiRender> imGuiRenders = new ArrayList<>();
     private HashMap<Integer, Boolean> keysPressed = new HashMap<>();
+    private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
+    private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
+    private FrameLimiter limiter = new FrameLimiter();
     private boolean culling = true;
     private boolean debugMode = false;
+
 
     public Window(float x, float y, float width, float height) {
         super(x, y, width, height);
@@ -75,6 +86,9 @@ public abstract class Window extends Component {
     }
     public void addResizedEventEvent(ResizeEvent resizeEvent){
         resizeEvents.add(resizeEvent);
+    }
+    public void addImGuiRender(ImGuiRender imGuiRender){
+        imGuiRenders.add(imGuiRender);
     }
 
     public boolean isDebugMode() {
@@ -139,6 +153,10 @@ public abstract class Window extends Component {
 
     public int getComponentsDrawn() {
         return componentsDrawn;
+    }
+
+    public FrameLimiter getLimiter() {
+        return limiter;
     }
 
     public void setWindowIcon(String icon16path, String icon32path) {
@@ -240,8 +258,22 @@ public abstract class Window extends Component {
                 renderI.render(renderer, renderer3D, textRenderer);
             }
 
+            for(ImGuiRender imGuiRender : imGuiRenders){
+                imGuiGlfw.newFrame();
+                ImGui.newFrame();
+
+                imGuiRender.render();
+
+                ImGui.end();
+
+                ImGui.render();
+                imGuiGl3.renderDrawData(ImGui.getDrawData());
+            }
+
             GLFW.glfwSwapBuffers(window);
             GLFW.glfwPollEvents();
+
+            limiter.sync();
 
             frames++;
             if(System.currentTimeMillis() - lastUpdate >= 1000){
@@ -253,10 +285,13 @@ public abstract class Window extends Component {
         }
 
         glfwDestroyWindow(window);
+
+        dispose();
         System.exit(0);
     }
 
     public void init(){
+        //loadImGuiNative();
         GLFWErrorCallback.createPrint(System.err).set();
         if (!GLFW.glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
@@ -368,6 +403,48 @@ public abstract class Window extends Component {
         renderer3D.setWidth((int) getWidth());
 
         renderer3D.initShadowMapping();
+
+        ImGui.createContext();
+        imGuiGlfw.init(window, true);
+        imGuiGl3.init("#version 330 core");
+    }
+
+    public void dispose() {
+        imGuiGl3.dispose();
+        imGuiGlfw.dispose();
+        ImGui.destroyContext();
+    }
+
+    public static void loadImGuiNative() {
+        String os = System.getProperty("os.name").toLowerCase();
+        String arch = System.getProperty("os.arch").toLowerCase();
+
+        String platform;
+        if (os.contains("win")) platform = "windows";
+        else if (os.contains("mac")) platform = "macos";
+        else if (os.contains("nix") || os.contains("nux") || os.contains("linux")) platform = "linux";
+        else throw new UnsupportedOperationException("Unsupported OS: " + os);
+
+        String libName = switch (platform) {
+            case "windows" -> "imgui-java64.dll";
+            case "macos" -> "libimgui-java64.dylib";
+            case "linux" -> "libimgui-java64.so";
+            default -> throw new IllegalStateException("Unexpected platform: " + platform);
+        };
+
+        String resourcePath = "/natives/" + libName;
+
+        try (InputStream in = Window.class.getResourceAsStream(resourcePath)) {
+            if (in == null) throw new FileNotFoundException("Native not found: " + resourcePath);
+
+            Path tempFile = Files.createTempFile("imgui", libName);
+            tempFile.toFile().deleteOnExit();
+            Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
+
+            System.load(tempFile.toAbsolutePath().toString());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load native ImGui library: " + resourcePath, e);
+        }
     }
 
     public boolean isKeyDown(int key){
